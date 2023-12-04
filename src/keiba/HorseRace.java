@@ -61,14 +61,15 @@ public class HorseRace {
             // 買う馬券を選択
             TicketType selectedTicketType;
             do {
-                selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください", TicketType.class);
-            } while (InputUtil.getAnswer(selectedTicketType + "でよろしいですか？"));
+                selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください\n", TicketType.class);
+            } while (!InputUtil.getAnswer(selectedTicketType + "でよろしいですか？"));
             // かける馬の選択
             List<Horse> selectedHorses = selectBuyHorse(selectedTicketType);
 
             // 掛け金の選択
             int betOut = InputUtil.getInt("いくら賭けますか", 1, (int) this.haveMoney);
-            betMoney(betOut);
+            this.haveMoney -= betOut;
+            System.out.println("現在の所持金は" + this.haveMoney + "です。");
 
             // 買った馬券の種類、掛け金、選択した馬を保存
             this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
@@ -142,9 +143,6 @@ public class HorseRace {
 
     private List<Horse> selectBuyHorse(TicketType ticketType) {
         // どの馬にかけますか
-        int selectOdds = 0;
-        selectOdds = InputUtil.getInt("賭ける馬を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1;
-
         List<Horse> buyHorse = new ArrayList<>();
         switch (ticketType) {
             case SINGLEWIN, MULTIPLEWINS -> {
@@ -178,15 +176,11 @@ public class HorseRace {
         return result.doubleValue();
     }
 
-    private void betMoney(int money){
-        this.haveMoney -= betOut;
-        System.out.println("現在の所持金は" + this.haveMoney + "です。");
-    }
 
     private boolean isTicketWin(BoughtTicket ticket, List<Horse> result) {
         return switch (ticket.getTicketType()) {
             case SINGLEWIN -> result.get(0).equals(ticket.getSelectedHorses().get(0));
-            case MULTIPLEWINS -> false;
+            case MULTIPLEWINS -> result.get(0).equals(ticket.getSelectedHorses().get(0));
             case TWO_HORSE_CONTINUOUS -> false;
             case TWO_ORDER_OF_ARRIVAL -> false;
             case THREE_HORSE_CONTINUOUS -> false;
