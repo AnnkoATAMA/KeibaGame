@@ -93,7 +93,7 @@ public class HorseRace {
         System.out.println("所持金は" + haveMoney + "です。");
         selectRace();
 
-        intHorse = random.nextInt(13) + 6;
+        intHorse = random.nextInt(13)+6 ;
         System.out.println("出走馬は、" + intHorse + "頭です。");
         horses = new Horse[intHorse];
     }
@@ -180,15 +180,34 @@ public class HorseRace {
     private boolean isTicketWin(BoughtTicket ticket, List<Horse> result) {
         return switch (ticket.getTicketType()) {
             case SINGLEWIN -> result.get(0).equals(ticket.getSelectedHorses().get(0));
-            case MULTIPLEWINS -> result.get(0).equals(ticket.getSelectedHorses().get(0));
+            case MULTIPLEWINS -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
+
             case TWO_HORSE_CONTINUOUS -> false;
             case TWO_ORDER_OF_ARRIVAL -> false;
             case THREE_HORSE_CONTINUOUS -> false;
             case THREE_ORDER_OF_ARRIVAL -> false;
         };
     }
+    private double resultMoney(BoughtTicket ticket, List<Horse> result) {
+        if (isTicketWin(ticket, result)) {
+            // The player's ticket is a winner
 
-    // いくらかけるか
+            // Calculate the winnings based on the odds
+            double odds = multiplyOdds(ticket.getSelectedHorses());
+            double winnings = ticket.getBet() * odds;
+
+            // Add winnings to the player's money
+            haveMoney += winnings;
+
+            System.out.println("おめでとうございます！配当は" + winnings + "です！");
+        } else {
+            // The player's ticket is not a winner
+            System.out.println("あ～まけた...");
+        }
+
+        // Return the updated amount of money the player has
+        return haveMoney;
+    }
     private void resultGame() {
 
         double selectOdds = this.horses[this.selected].getOdds();
@@ -197,7 +216,8 @@ public class HorseRace {
         Collections.shuffle(result);
 
         System.out.println("1着は" + (result.get(0).getDisplayNumber()) + "番です！！！");
-
+        haveMoney = resultMoney(boughtTickets.get(0),Arrays.asList(horses.clone()));
+        System.out.println(haveMoney);
         System.out.println("＿＿＿＿＿＿＿＿＿＿＿");
         System.out.println("|小倉 " + ColorCode.YELLOW + random.nextInt(1,13) + ColorCode.END + "R" + " 　 " + ColorCode.RED_BG + " 確定 " + ColorCode.END + "|");
         System.out.println("| " + "(" + ColorCode.BLUE + "1" + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(0).getDisplayNumber()) + " " + ColorCode.END + "　　　　　|");
@@ -211,17 +231,6 @@ public class HorseRace {
         System.out.println("|  " + ColorCode.YELLOW + condition.get(random.nextInt(condition.size())) + ColorCode.END + String.format("%-10s", " ") + "|");
         System.out.println("￣￣￣￣￣￣￣￣￣￣￣");
 
-        if (this.horses[this.selected].equals(result.get(0))) {
-            System.out.println("おめでとうございます！勝ちました！");
-
-            double winMoney = selectOdds * betOut;
-            this.haveMoney += winMoney;
-
-            System.out.println("所持金は" + this.haveMoney + "です。");
-        } else {
-            System.out.println("あーあ。負けた。");
-            System.out.println("所持金は" + this.haveMoney + "です。");
-        }
     }
 }
 
