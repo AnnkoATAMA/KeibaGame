@@ -45,9 +45,8 @@ public class HorseRace {
     private int intHorse;
     private Horse[] horses;
     private double haveMoney;
-    private int selected;
 
-    private double betOut;
+
     private final List<BoughtTicket> boughtTickets = new ArrayList<>();
 
     // コンストラクタについて知ろう！
@@ -209,8 +208,6 @@ public class HorseRace {
         return haveMoney;
     }
     private void resultGame() {
-
-        double selectOdds = this.horses[this.selected].getOdds();
         List<Horse> result = Arrays.asList(this.horses.clone());
 
         Collections.shuffle(result);
