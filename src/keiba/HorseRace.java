@@ -59,19 +59,30 @@ public class HorseRace {
 
             // 買う馬券を選択
             TicketType selectedTicketType;
+            boolean continueBuy;
             do {
-                selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください\n", TicketType.class);
-            } while (!InputUtil.getAnswer(selectedTicketType + "でよろしいですか？"));
-            // かける馬の選択
-            List<Horse> selectedHorses = selectBuyHorse(selectedTicketType);
 
-            // 掛け金の選択
-            int betOut = InputUtil.getInt("いくら賭けますか", 1, (int) this.haveMoney);
-            this.haveMoney -= betOut;
-            System.out.println("現在の所持金は" + this.haveMoney + "です。");
+                do {
+                    selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください\n", TicketType.class);
+                } while (!InputUtil.getAnswer(selectedTicketType + "でよろしいですか？"));
+
+                // かける馬の選択
+                List<Horse> selectedHorses = selectBuyHorse(selectedTicketType);
+
+                // 掛け金の選択
+                int betOut = InputUtil.getInt("いくら賭けますか", 1, (int) this.haveMoney);
+                this.haveMoney -= betOut;
+                System.out.println("現在の所持金は" + this.haveMoney + "です。");
+                this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
+                continueBuy = InputUtil.getAnswer("さらに馬券を購入しますか？");
+                if (continueBuy) {
+                    selectedTicketType = InputUtil.getEnumObject("新しい馬券の種類を選択してください\n", TicketType.class);
+                    this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
+                }
+            }while (continueBuy);
 
             // 買った馬券の種類、掛け金、選択した馬を保存
-            this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
+
 
 
             resultGame();
@@ -141,29 +152,29 @@ public class HorseRace {
     //TODO　oddsによって勝率を変える時は double の odds を int に直してその整数分ランダムして、1が出たら一着？みたいな感じ？
 
     private List<Horse> selectBuyHorse(TicketType ticketType) {
-        // どの馬にかけますか
         List<Horse> buyHorse = new ArrayList<>();
-        switch (ticketType) {
-            case SINGLEWIN, MULTIPLEWINS -> {
-                do {
-                    buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
-                } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+            switch (ticketType) {
+                case SINGLEWIN, MULTIPLEWINS -> {
+                    do {
+                        buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                }
+                case TWO_HORSE_CONTINUOUS, TWO_ORDER_OF_ARRIVAL -> {
+                    do {
+                        for (int i = 0; i < 2; i++) {
+                            buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
+                        }
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                }
+                case THREE_HORSE_CONTINUOUS, THREE_ORDER_OF_ARRIVAL -> {
+                    do {
+                        for (int i = 0; i < 3; i++) {
+                            buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
+                        }
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                }
             }
-            case TWO_HORSE_CONTINUOUS, TWO_ORDER_OF_ARRIVAL -> {
-                do {
-                    for (int i = 0; i < 2; i++) {
-                        buyHorse.add(this.horses[InputUtil.getInt((i+1) + "頭目を選んでください（1-" + this.intHorse +"）", 1, this.intHorse) - 1]);
-                    }
-                } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
-            }
-            case THREE_HORSE_CONTINUOUS, THREE_ORDER_OF_ARRIVAL-> {
-                do {
-                    for (int i = 0; i < 3; i++) {
-                        buyHorse.add(this.horses[InputUtil.getInt((i+1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
-                    }
-                } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
-            }
-        }
+
         return buyHorse;
     }
     
@@ -227,4 +238,5 @@ public class HorseRace {
 
     }
 }
-
+//TODO　馬券を複数購入できるようにする
+//TODO　リザルトマネーは馬券の数によってループする必要もあるし呼び出したとき今はget(0)で一番最初だけを参照してるから全部見るようにさせるで見て当たった馬券の数金額が増えるようにする
