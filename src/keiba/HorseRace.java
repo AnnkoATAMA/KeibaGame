@@ -156,11 +156,13 @@ public class HorseRace {
             switch (ticketType) {
                 case SINGLEWIN, MULTIPLEWINS -> {
                     do {
+                        buyHorse.clear();
                         buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
                     } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
                 }
                 case TWO_HORSE_CONTINUOUS, TWO_ORDER_OF_ARRIVAL -> {
                     do {
+                        buyHorse.clear();
                         for (int i = 0; i < 2; i++) {
                             buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
                         }
@@ -168,6 +170,7 @@ public class HorseRace {
                 }
                 case THREE_HORSE_CONTINUOUS, THREE_ORDER_OF_ARRIVAL -> {
                     do {
+                        buyHorse.clear();
                         for (int i = 0; i < 3; i++) {
                             buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
                         }
