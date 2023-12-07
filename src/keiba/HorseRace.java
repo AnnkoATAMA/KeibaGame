@@ -54,7 +54,7 @@ public class HorseRace {
         haveMoney = FIRST_MONEY;
         do {
             startGame();
-            selectOdds();
+            setOdds();
 
 
             // 買う馬券を選択
@@ -64,7 +64,7 @@ public class HorseRace {
 
                 do {
                     selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください\n", TicketType.class);
-                } while (!InputUtil.getAnswer(selectedTicketType + "でよろしいですか？"));
+                } while (!InputUtil.getAnswerByYesNo(selectedTicketType + "でよろしいですか？"));
 
                 // かける馬の選択
                 List<Horse> selectedHorses = selectBuyHorse(selectedTicketType);
@@ -74,7 +74,7 @@ public class HorseRace {
                 this.haveMoney -= betOut;
                 System.out.println("現在の所持金は" + this.haveMoney + "です。");
                 this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
-                continueBuy = InputUtil.getAnswer("さらに馬券を購入しますか？");
+                continueBuy = InputUtil.getAnswerByYesNo("さらに馬券を購入しますか？");
                 if (continueBuy) {
                     selectedTicketType = InputUtil.getEnumObject("新しい馬券の種類を選択してください\n", TicketType.class);
                     this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
@@ -90,7 +90,7 @@ public class HorseRace {
                 System.out.println("ゲームを終了します。");
                 break;
             }
-            boolean gameEnd = InputUtil.getAnswer("ゲームを終わりますか？");
+            boolean gameEnd = InputUtil.getAnswerByYesNo("ゲームを終わりますか？");
 
             if (gameEnd) {
                 System.out.println("ゲームを終了します。");
@@ -109,7 +109,7 @@ public class HorseRace {
     }
 
     private void selectRace() {
-        boolean selectMode = InputUtil.getAnswer("レースを選びますか？");
+        boolean selectMode = InputUtil.getAnswerByYesNo("レースを選びますか？");
         if (selectMode) {
 //            選択型
             final FieldType selectFiled = InputUtil.getEnumObject(FieldType.class, FieldType.NONE);
@@ -126,8 +126,8 @@ public class HorseRace {
         }
     }
 
-    private void selectOdds() {
-        boolean selectRealHorse = InputUtil.getAnswer("現実の競走馬を反映しますか？");
+    private void setOdds() {
+        boolean selectRealHorse = InputUtil.getAnswerByYesNo("現実の競走馬を反映しますか？");
 //            リアルの競走馬を反映したオッズ作成
         System.out.println("------- 賭ける馬のオッズ -------");
         HorseType[] horseTypes = selectRealHorse ?
@@ -154,11 +154,11 @@ public class HorseRace {
     private List<Horse> selectBuyHorse(TicketType ticketType) {
         List<Horse> buyHorse = new ArrayList<>();
             switch (ticketType) {
-                case SINGLEWIN, MULTIPLEWINS -> {
+                case WIN, PLACE_SHOW -> {
                     do {
                         buyHorse.clear();
                         buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
-                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
                 }
                 case TWO_HORSE_CONTINUOUS, TWO_ORDER_OF_ARRIVAL -> {
                     do {
@@ -166,7 +166,7 @@ public class HorseRace {
                         for (int i = 0; i < 2; i++) {
                             buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
                         }
-                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
                 }
                 case THREE_HORSE_CONTINUOUS, THREE_ORDER_OF_ARRIVAL -> {
                     do {
@@ -174,7 +174,7 @@ public class HorseRace {
                         for (int i = 0; i < 3; i++) {
                             buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
                         }
-                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
                 }
             }
 
@@ -192,8 +192,8 @@ public class HorseRace {
 
     private boolean isTicketWin(BoughtTicket ticket, List<Horse> result) {
         return switch (ticket.getTicketType()) {
-            case SINGLEWIN -> result.get(0).equals(ticket.getSelectedHorses().get(0));
-            case MULTIPLEWINS -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
+            case WIN -> result.get(0).equals(ticket.getSelectedHorses().get(0));
+            case PLACE_SHOW -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
 
             case TWO_HORSE_CONTINUOUS -> false;
             case TWO_ORDER_OF_ARRIVAL -> false;
@@ -201,6 +201,7 @@ public class HorseRace {
             case THREE_ORDER_OF_ARRIVAL -> false;
         };
     }
+
     private double resultMoney(BoughtTicket ticket, List<Horse> result) {
         if (isTicketWin(ticket, result)) {
 
@@ -218,6 +219,7 @@ public class HorseRace {
 
         return haveMoney;
     }
+
     private void resultGame() {
         List<Horse> result = Arrays.asList(this.horses.clone());
 
