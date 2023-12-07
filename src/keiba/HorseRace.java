@@ -5,6 +5,7 @@ import keiba.model.BoughtTicket;
 import keiba.model.Horse;
 import keiba.model.RaceType;
 import keiba.util.InputUtil;
+import keiba.util.RomanNumber;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -56,12 +57,10 @@ public class HorseRace {
             startGame();
             setOdds();
 
-
             // 買う馬券を選択
             TicketType selectedTicketType;
             boolean continueBuy;
             do {
-
                 do {
                     selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください\n", TicketType.class);
                 } while (!InputUtil.getAnswerByYesNo(selectedTicketType + "でよろしいですか？"));
@@ -223,6 +222,7 @@ public class HorseRace {
     private void resultGame() {
         List<Horse> result = Arrays.asList(this.horses.clone());
 
+        // リストをシャッフルし、結果を作成
         Collections.shuffle(result);
 
         System.out.println("1着は" + (result.get(0).getDisplayNumber()) + "番です！！！");
@@ -230,9 +230,9 @@ public class HorseRace {
         System.out.println("現在の所持金は" + haveMoney + "です。");
         System.out.println("＿＿＿＿＿＿＿＿＿＿＿");
         System.out.println("|小倉 " + ColorCode.YELLOW + random.nextInt(1,13) + ColorCode.END + "R" + " 　 " + ColorCode.RED_BG + " 確定 " + ColorCode.END + "|");
-        System.out.println("| " + "(" + ColorCode.BLUE + "1" + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(0).getDisplayNumber()) + " " + ColorCode.END + "　　　　　|");
+        System.out.println("| " + "(" + ColorCode.BLUE + "I" + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(0).getDisplayNumber()) + " " + ColorCode.END + "　　　　　|");
         for (int i = 2; i < 6; i++) {
-            System.out.println("| " + "(" + ColorCode.BLUE + i + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(i - 1).getDisplayNumber()) + " " + messages.get(i) + ColorCode.END + "|");
+            System.out.println("| " + "(" + ColorCode.BLUE + RomanNumber.getRomanNumber(i) + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(i - 1).getDisplayNumber()) + " " + messages.get(i) + ColorCode.END + "|");
         }
 
         System.out.println("|  " + FieldType.SHIBA + "　　 　　 " + "|");
