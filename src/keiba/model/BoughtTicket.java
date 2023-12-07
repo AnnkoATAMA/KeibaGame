@@ -26,6 +26,7 @@ public class BoughtTicket {
         return selectedHorses;
     }
 
+
     public static BoughtTicket of(TicketType ticketType, List<Horse> selectedHorses, int bet) {
         return new BoughtTicket(ticketType, selectedHorses, bet);
     }
