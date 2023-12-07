@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Random;
 
 public enum FieldType {
-    SHIBA("芝　　","shiba"),
-    DART("ダ―ト","dart"),
-    NONE("無し", "none");
+    SHIBA("芝　　"),
+    DART("ダ―ト"),
+    NONE("無し");
 
     private final String display;
 
-    FieldType(String display,String type) {
+    FieldType(String display) {
         this.display = display;
     }
 
