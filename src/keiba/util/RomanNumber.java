@@ -14,21 +14,28 @@ public class RomanNumber {
     }
 
     public enum Number {
-        I(1),
-        II(2),
-        III(3),
-        IV(4),
-        V(5),
-        VI(6),
-        VII(7),
-        VIII(8),
-        IX(9),
-        X(10);
+        I(1, "Ⅰ"),
+        II(2, "Ⅱ"),
+        III(3, "Ⅲ"),
+        IV(4, "Ⅳ"),
+        V(5, "Ⅴ"),
+        VI(6, "Ⅵ"),
+        VII(7, "Ⅶ"),
+        VIII(8, "Ⅷ"),
+        IX(9, "Ⅸ"),
+        X(10, "Ⅹ");
 
-        private int number;
+        private final int number;
+        private final String display;
 
-        Number(int number) {
+        Number(int number, String display) {
             this.number = number;
+            this.display = display;
+        }
+
+        @Override
+        public String toString() {
+            return this.display;
         }
     }
 }
