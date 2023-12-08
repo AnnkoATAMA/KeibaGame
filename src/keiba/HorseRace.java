@@ -61,7 +61,17 @@ public class HorseRace {
         this.haveMoney = money;
         this.horses = new Horse[this.horseAmount];
 
+ master
         System.out.println("所持金は" + haveMoney + "です。");
+
+                // 掛け金の選択
+                int betOut = InputUtil.getInt("いくら賭けますか", 1, (int) this.haveMoney);
+                this.haveMoney -= betOut;
+                System.out.println("現在の所持金は" + this.haveMoney + "です。");
+                this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
+                continueBuy = (!InputUtil.getAnswer("さらに馬券を購入しますか？"));
+            }while (!continueBuy);
+ master
 
         System.out.println("出走馬は、" + horseAmount + "頭です。");
         createHorses(useRealHorse);
@@ -78,8 +88,18 @@ public class HorseRace {
         }
     }
 
+ master
     private HorseRace(RaceType raceType, boolean useRealHorse) {
         this(raceType, useRealHorse, FIRST_MONEY);
+
+    private void startGame() {
+        System.out.println("所持金は" + haveMoney + "です。");
+        selectRace();
+
+        intHorse = random.nextInt(7) ;
+        System.out.println("出走馬は、" + intHorse + "頭です。");
+        horses = new Horse[intHorse];
+ master
     }
 
     private void buyTickets() {
@@ -172,15 +192,27 @@ public class HorseRace {
 
     private boolean isTicketWin(BoughtTicket ticket, List<Horse> result) {
         return switch (ticket.getTicketType()) {
+ master
             case WIN -> result.get(0).equals(ticket.getSelectedHorses().get(0));
             case PLACE_SHOW -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
 
-            case TWO_HORSE_CONTINUOUS -> false;
-            case TWO_ORDER_OF_ARRIVAL -> false;
+            case SINGLEWIN -> ticket.getSelectedHorses().contains(result.get(0));
+            case MULTIPLEWINS -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
+ master
+
+            case TWO_HORSE_CONTINUOUS -> ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(0).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(1).getDisplayNumber()
+                || (ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(1).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(0).getDisplayNumber());
+            case TWO_ORDER_OF_ARRIVAL ->ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(0).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(1).getDisplayNumber()
+                && (ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(1).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(0).getDisplayNumber());
             case THREE_HORSE_CONTINUOUS -> false;
             case THREE_ORDER_OF_ARRIVAL -> false;
         };
     }
+ master
 
     private double resultMoney(BoughtTicket ticket, List<Horse> result) {
         if (isTicketWin(ticket, result)) {
@@ -194,6 +226,19 @@ public class HorseRace {
         } else {
 
             System.out.println("あ～まけた...");
+
+    private double resultMoney(List<BoughtTicket> tickets, List<Horse> result) {
+        for (BoughtTicket ticket : tickets) {
+            if (isTicketWin(ticket, result)) {
+                double odds = multiplyOdds(ticket.getSelectedHorses());
+                double winnings = ticket.getBet() * odds;
+                haveMoney += winnings;
+                System.out.println("おめでとうございます！配当は" + winnings + "です！");
+            } else {
+
+                System.out.println("あ～まけた...");
+            }
+ master
         }
 
 
@@ -207,7 +252,11 @@ public class HorseRace {
         Collections.shuffle(result);
 
         System.out.println("1着は" + (result.get(0).getDisplayNumber()) + "番です！！！");
+ master
         haveMoney = resultMoney(boughtTickets.get(0), result);
+
+        haveMoney = resultMoney(boughtTickets,result);
+ master
         System.out.println("現在の所持金は" + haveMoney + "です。");
         System.out.println("＿＿＿＿＿＿＿＿＿＿＿");
         System.out.println("|小倉 " + ColorCode.YELLOW + random.nextInt(1,13) + ColorCode.END + "R" + " 　 " + ColorCode.RED_BG + " 確定 " + ColorCode.END + "|");
@@ -270,5 +319,4 @@ public class HorseRace {
         }
     }
 }
-//TODO　馬券を複数購入できるようにする
 //TODO　リザルトマネーは馬券の数によってループする必要もあるし呼び出したとき今はget(0)で一番最初だけを参照してるから全部見るようにさせるで見て当たった馬券の数金額が増えるようにする
