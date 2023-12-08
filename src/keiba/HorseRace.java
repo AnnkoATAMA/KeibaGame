@@ -99,7 +99,7 @@ public class HorseRace {
         System.out.println("所持金は" + haveMoney + "です。");
         selectRace();
 
-        intHorse = random.nextInt(13)+6 ;
+        intHorse = random.nextInt(7) ;
         System.out.println("出走馬は、" + intHorse + "頭です。");
         horses = new Horse[intHorse];
     }
@@ -192,8 +192,13 @@ public class HorseRace {
             case MULTIPLEWINS -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
 
             case TWO_HORSE_CONTINUOUS -> ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(0).getDisplayNumber()
-                                         || ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(1).getDisplayNumber();
-            case TWO_ORDER_OF_ARRIVAL -> false;
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(1).getDisplayNumber()
+                || (ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(1).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(0).getDisplayNumber());
+            case TWO_ORDER_OF_ARRIVAL ->ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(0).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(1).getDisplayNumber()
+                && (ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(1).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(0).getDisplayNumber());
             case THREE_HORSE_CONTINUOUS -> false;
             case THREE_ORDER_OF_ARRIVAL -> false;
         };
