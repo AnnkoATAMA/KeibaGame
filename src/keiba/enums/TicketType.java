@@ -2,8 +2,8 @@ package keiba.enums;
 
 public enum TicketType {
 
-    WIN("単勝"),
-    PLACE_SHOW("複勝"),
+    SINGLEWIN("単勝"),
+    MULTIPLEWINS("複勝"),
     TWO_HORSE_CONTINUOUS("馬連"),
     TWO_ORDER_OF_ARRIVAL("馬単"),
     THREE_HORSE_CONTINUOUS("三連複"),

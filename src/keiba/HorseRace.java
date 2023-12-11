@@ -5,7 +5,6 @@ import keiba.model.BoughtTicket;
 import keiba.model.Horse;
 import keiba.model.RaceType;
 import keiba.util.InputUtil;
-import keiba.util.RomanNumber;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -43,26 +42,32 @@ public class HorseRace {
         add("大差　　　");
     }};
     private RaceType raceType;
-    private int horseAmount;
+    private int intHorse;
     private Horse[] horses;
     private double haveMoney;
+
+
     private final List<BoughtTicket> boughtTickets = new ArrayList<>();
 
+    // コンストラクタについて知ろう！
+    public HorseRace() {
+        haveMoney = FIRST_MONEY;
+        do {
+            startGame();
+            selectOdds();
 
-    private HorseRace(RaceType raceType, boolean useRealHorse, double money) {
-        if (money <= 0) {
-            System.out.println("所持金が尽きたので終了します。");
-            System.exit(0);
-            return;
-        }
 
-        this.raceType = raceType;
-        this.horseAmount = random.nextInt(13) + 6;
-        this.haveMoney = money;
-        this.horses = new Horse[this.horseAmount];
+            // 買う馬券を選択
+            TicketType selectedTicketType;
+            boolean continueBuy;
+            do {
 
- master
-        System.out.println("所持金は" + haveMoney + "です。");
+                do {
+                    selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください\n", TicketType.class);
+                } while (!InputUtil.getAnswer(selectedTicketType + "でよろしいですか？"));
+
+                // かける馬の選択
+                List<Horse> selectedHorses = selectBuyHorse(selectedTicketType);
 
                 // 掛け金の選択
                 int betOut = InputUtil.getInt("いくら賭けますか", 1, (int) this.haveMoney);
@@ -71,26 +76,24 @@ public class HorseRace {
                 this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
                 continueBuy = (!InputUtil.getAnswer("さらに馬券を購入しますか？"));
             }while (!continueBuy);
- master
 
-        System.out.println("出走馬は、" + horseAmount + "頭です。");
-        createHorses(useRealHorse);
+            // 買った馬券の種類、掛け金、選択した馬を保存
 
-        buyTickets();
 
-        if (raceType == null) raceType = new RaceType(FieldType.getRandomFieldType(FieldType.NONE), RaceRank.getRandomRankType(), RangeType.getRandomRangeType());
-        System.out.println("レース概要はこちら\n" + raceType + "\n入場します。");
 
-        resultGame();
+            resultGame();
+            if (haveMoney <= 0) {
+                System.out.println("ゲームを終了します。");
+                break;
+            }
+            boolean gameEnd = InputUtil.getAnswer("ゲームを終わりますか？");
 
-        if (!InputUtil.getAnswerByYesNo("ゲームを終わりますか？")) {
-            HorseRaceBuilder.create().setSettingByInput().build();
-        }
+            if (gameEnd) {
+                System.out.println("ゲームを終了します。");
+                break;
+            }
+        } while (haveMoney > 0);
     }
-
- master
-    private HorseRace(RaceType raceType, boolean useRealHorse) {
-        this(raceType, useRealHorse, FIRST_MONEY);
 
     private void startGame() {
         System.out.println("所持金は" + haveMoney + "です。");
@@ -99,43 +102,36 @@ public class HorseRace {
         intHorse = random.nextInt(7) ;
         System.out.println("出走馬は、" + intHorse + "頭です。");
         horses = new Horse[intHorse];
- master
     }
 
-    private void buyTickets() {
-        TicketType selectedTicketType;
-        boolean continueBuy;
-        do {
-            do {
-                selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください\n", TicketType.class);
-            } while (!InputUtil.getAnswerByYesNo(selectedTicketType + "でよろしいですか？"));
+    private void selectRace() {
+        boolean selectMode = InputUtil.getAnswer("レースを選びますか？");
+        if (selectMode) {
+//            選択型
+            final FieldType selectFiled = InputUtil.getEnumObject(FieldType.class, FieldType.NONE);
+            final RaceRank selectRank = InputUtil.getEnumObject(RaceRank.class);
+            final RangeType selectRange = InputUtil.getEnumObject(RangeType.class);
 
-            // かける馬の選択
-            List<Horse> selectedHorses = selectBuyHorse(selectedTicketType);
+            System.out.println("レース概要はこちら\n" + selectFiled + "\n" + selectRank + "\n" + selectRange + "\n入場します。");
+            raceType = new RaceType(selectFiled, selectRank, selectRange);
 
-            // 掛け金の選択
-            int betOut = InputUtil.getInt("いくら賭けますか", 1, (int) this.haveMoney);
-            this.haveMoney -= betOut;
-            System.out.println("現在の所持金は" + this.haveMoney + "です。");
-            this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
-            continueBuy = InputUtil.getAnswerByYesNo("さらに馬券を購入しますか？");
-            if (continueBuy) {
-                selectedTicketType = InputUtil.getEnumObject("新しい馬券の種類を選択してください\n", TicketType.class);
-                this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
-            }
-        }while (continueBuy);
+        } else {
+            // ランダムに生成する
+            raceType = new RaceType(FieldType.getRandomFieldType(FieldType.NONE), RaceRank.getRandomRankType(), RangeType.getRandomRangeType());
+            System.out.println("レース概要はこちら\n" + raceType + "\n入場します。");
+        }
     }
 
-    private void createHorses(boolean useRealHorse) {
-//        boolean selectRealHorse = InputUtil.getAnswerByYesNo("現実の競走馬を反映しますか？");
+    private void selectOdds() {
+        boolean selectRealHorse = InputUtil.getAnswer("現実の競走馬を反映しますか？");
 //            リアルの競走馬を反映したオッズ作成
         System.out.println("------- 賭ける馬のオッズ -------");
-        HorseType[] horseTypes = useRealHorse ?
-                HorseType.getRandomHorses(this.horseAmount, this.raceType.getFieldType()) :
-                IntStream.range(0, this.horseAmount).mapToObj(i -> HorseType.CUSTOM).toArray(HorseType[]::new);
+        HorseType[] horseTypes = selectRealHorse ?
+                HorseType.getRandomHorses(this.intHorse, this.raceType.getFieldType()) :
+                IntStream.range(0, this.intHorse).mapToObj(i -> HorseType.CUSTOM).toArray(HorseType[]::new);
 
         double odds;
-        for (int i = 0; i < horseAmount; i++) {
+        for (int i = 0; i < intHorse; i++) {
             if (i == 0) odds = 1.5;
             else odds = (Math.floor(random.nextDouble(105) * 10 + 16) / 10);
 
@@ -154,27 +150,27 @@ public class HorseRace {
     private List<Horse> selectBuyHorse(TicketType ticketType) {
         List<Horse> buyHorse = new ArrayList<>();
             switch (ticketType) {
-                case WIN, PLACE_SHOW -> {
+                case SINGLEWIN, MULTIPLEWINS -> {
                     do {
                         buyHorse.clear();
-                        buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
-                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                        buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
                 }
                 case TWO_HORSE_CONTINUOUS, TWO_ORDER_OF_ARRIVAL -> {
                     do {
                         buyHorse.clear();
                         for (int i = 0; i < 2; i++) {
-                            buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
+                            buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
                         }
-                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
                 }
                 case THREE_HORSE_CONTINUOUS, THREE_ORDER_OF_ARRIVAL -> {
                     do {
                         buyHorse.clear();
                         for (int i = 0; i < 3; i++) {
-                            buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
+                            buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.intHorse + "）", 1, this.intHorse) - 1]);
                         }
-                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
                 }
             }
 
@@ -192,13 +188,8 @@ public class HorseRace {
 
     private boolean isTicketWin(BoughtTicket ticket, List<Horse> result) {
         return switch (ticket.getTicketType()) {
- master
-            case WIN -> result.get(0).equals(ticket.getSelectedHorses().get(0));
-            case PLACE_SHOW -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
-
             case SINGLEWIN -> ticket.getSelectedHorses().contains(result.get(0));
             case MULTIPLEWINS -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
- master
 
             case TWO_HORSE_CONTINUOUS -> ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(0).getDisplayNumber()
                     && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(1).getDisplayNumber()
@@ -212,21 +203,6 @@ public class HorseRace {
             case THREE_ORDER_OF_ARRIVAL -> false;
         };
     }
- master
-
-    private double resultMoney(BoughtTicket ticket, List<Horse> result) {
-        if (isTicketWin(ticket, result)) {
-
-            double odds = multiplyOdds(ticket.getSelectedHorses());
-            double winnings = ticket.getBet() * odds;
-
-            haveMoney += winnings;
-
-            System.out.println("おめでとうございます！配当は" + winnings + "です！");
-        } else {
-
-            System.out.println("あ～まけた...");
-
     private double resultMoney(List<BoughtTicket> tickets, List<Horse> result) {
         for (BoughtTicket ticket : tickets) {
             if (isTicketWin(ticket, result)) {
@@ -238,31 +214,24 @@ public class HorseRace {
 
                 System.out.println("あ～まけた...");
             }
- master
         }
 
 
         return haveMoney;
     }
-
     private void resultGame() {
         List<Horse> result = Arrays.asList(this.horses.clone());
 
-        // リストをシャッフルし、結果を作成
         Collections.shuffle(result);
 
         System.out.println("1着は" + (result.get(0).getDisplayNumber()) + "番です！！！");
- master
-        haveMoney = resultMoney(boughtTickets.get(0), result);
-
         haveMoney = resultMoney(boughtTickets,result);
- master
         System.out.println("現在の所持金は" + haveMoney + "です。");
         System.out.println("＿＿＿＿＿＿＿＿＿＿＿");
         System.out.println("|小倉 " + ColorCode.YELLOW + random.nextInt(1,13) + ColorCode.END + "R" + " 　 " + ColorCode.RED_BG + " 確定 " + ColorCode.END + "|");
-        System.out.println("| " + "(" + ColorCode.BLUE + "I" + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(0).getDisplayNumber()) + " " + ColorCode.END + "　　　　　|");
+        System.out.println("| " + "(" + ColorCode.BLUE + "1" + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(0).getDisplayNumber()) + " " + ColorCode.END + "　　　　　|");
         for (int i = 2; i < 6; i++) {
-            System.out.println("| " + "(" + ColorCode.BLUE + RomanNumber.getRomanNumber(i) + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(i - 1).getDisplayNumber()) + " " + messages.get(i) + ColorCode.END + "|");
+            System.out.println("| " + "(" + ColorCode.BLUE + i + ColorCode.END + ")" + ColorCode.YELLOW + String.format("%-2d", result.get(i - 1).getDisplayNumber()) + " " + messages.get(i) + ColorCode.END + "|");
         }
 
         System.out.println("|  " + FieldType.SHIBA + "　　 　　 " + "|");
@@ -271,52 +240,6 @@ public class HorseRace {
         System.out.println("|  " + ColorCode.YELLOW + condition.get(random.nextInt(condition.size())) + ColorCode.END + String.format("%-10s", " ") + "|");
         System.out.println("￣￣￣￣￣￣￣￣￣￣￣");
 
-    }
-
-    public static class HorseRaceBuilder {
-        private boolean realHorse = false;
-        private RaceType raceType = null;
-
-        private HorseRaceBuilder() {}
-
-        public static HorseRaceBuilder create() {
-            return new HorseRaceBuilder();
-        }
-
-        public HorseRaceBuilder setUseRealHorse(boolean use) {
-            this.realHorse = use;
-
-            return this;
-        }
-
-        public HorseRaceBuilder setRaceType(RaceType raceType) {
-            this.raceType = raceType;
-
-            return this;
-        }
-
-        public HorseRaceBuilder setSettingByInput() {
-            if (InputUtil.getAnswerByYesNo("レースを選びますか？")) {
-                final FieldType selectFiled = InputUtil.getEnumObject(FieldType.class, FieldType.NONE);
-                final RaceRank selectRank = InputUtil.getEnumObject(RaceRank.class);
-                final RangeType selectRange = InputUtil.getEnumObject(RangeType.class);
-
-                System.out.println("レース概要はこちら\n" + selectFiled + "\n" + selectRank + "\n" + selectRange + "\n入場します。");
-                this.raceType = new RaceType(selectFiled, selectRank, selectRange);
-            }
-
-            this.realHorse = InputUtil.getAnswerByYesNo("実際の競走馬を反映させますか？");
-
-            return this;
-        }
-
-        public HorseRace build() {
-            if (this.raceType == null) {
-                this.raceType = new RaceType(FieldType.getRandomFieldType(FieldType.NONE), RaceRank.getRandomRankType(), RangeType.getRandomRangeType());
-            }
-
-            return new HorseRace(raceType, realHorse);
-        }
     }
 }
 //TODO　リザルトマネーは馬券の数によってループする必要もあるし呼び出したとき今はget(0)で一番最初だけを参照してるから全部見るようにさせるで見て当たった馬券の数金額が増えるようにする
