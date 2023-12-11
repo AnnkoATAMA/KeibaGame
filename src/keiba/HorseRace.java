@@ -48,7 +48,7 @@ public class HorseRace {
     private double haveMoney;
     private final List<BoughtTicket> boughtTickets = new ArrayList<>();
 
-
+    // hello
     private HorseRace(RaceType raceType, boolean useRealHorse, double money) {
         if (money <= 0) {
             System.out.println("所持金が尽きたので終了します。");
