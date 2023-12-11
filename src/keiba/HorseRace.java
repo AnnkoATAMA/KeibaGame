@@ -175,8 +175,14 @@ public class HorseRace {
             case WIN -> result.get(0).equals(ticket.getSelectedHorses().get(0));
             case PLACE_SHOW -> ticket.getSelectedHorses().contains(result.get(0)) || ticket.getSelectedHorses().contains(result.get(1));
 
-            case TWO_HORSE_CONTINUOUS -> false;
-            case TWO_ORDER_OF_ARRIVAL -> false;
+            case TWO_HORSE_CONTINUOUS -> ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(0).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(1).getDisplayNumber()
+                || (ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(1).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(0).getDisplayNumber());
+            case TWO_ORDER_OF_ARRIVAL ->ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(0).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(1).getDisplayNumber()
+                && (ticket.getSelectedHorses().get(0).getDisplayNumber() == result.get(1).getDisplayNumber()
+                    && ticket.getSelectedHorses().get(1).getDisplayNumber() == result.get(0).getDisplayNumber());
             case THREE_HORSE_CONTINUOUS -> false;
             case THREE_ORDER_OF_ARRIVAL -> false;
         };
@@ -208,6 +214,7 @@ public class HorseRace {
 
         System.out.println("1着は" + (result.get(0).getDisplayNumber()) + "番です！！！");
         haveMoney = resultMoney(boughtTickets.get(0), result);
+
         System.out.println("現在の所持金は" + haveMoney + "です。");
         System.out.println("＿＿＿＿＿＿＿＿＿＿＿");
         System.out.println("|小倉 " + ColorCode.YELLOW + random.nextInt(1,13) + ColorCode.END + "R" + " 　 " + ColorCode.RED_BG + " 確定 " + ColorCode.END + "|");
@@ -270,5 +277,4 @@ public class HorseRace {
         }
     }
 }
-//TODO　馬券を複数購入できるようにする
 //TODO　リザルトマネーは馬券の数によってループする必要もあるし呼び出したとき今はget(0)で一番最初だけを参照してるから全部見るようにさせるで見て当たった馬券の数金額が増えるようにする
