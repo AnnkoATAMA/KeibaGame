@@ -35,12 +35,12 @@ public class InputUtil {
         return getInt(message, min, Integer.MAX_VALUE);
     }
 
-    public static boolean getAnswerByYesNo(String message) {
+    public static boolean getAnswer(String message) {
         System.out.print((message == null ? "よろしいですか？" : message) + "(y/n) :");
         String input = sc.next();
         System.out.println();
 
-        return input.equalsIgnoreCase("y") || (!input.equalsIgnoreCase("n") && getAnswerByYesNo(message));
+        return input.equalsIgnoreCase("y") || (!input.equalsIgnoreCase("n") && getAnswer(message));
     }
 
     @SafeVarargs
