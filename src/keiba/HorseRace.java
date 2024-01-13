@@ -116,17 +116,30 @@ public class HorseRace {
                 HorseType.getRandomHorses(this.horseAmount, this.raceType.getFieldType()) :
                 IntStream.range(0, this.horseAmount).mapToObj(i -> HorseType.CUSTOM).toArray(HorseType[]::new);
 
-        double odds;
+        double odds = 400;
+        if (horseAmount < 11) {
+            odds = 250;
+        } else if (horseAmount < 19) {
+            odds = 300;
+        }
+
+        double randomOdds = odds;
         for (int i = 0; i < horseAmount; i++) {
-            if (i == 0) odds = 1.5;
-            else odds = (Math.floor(random.nextDouble(105) * 10 + 16) / 10);
+
+            System.out.println(randomOdds);
+            if(randomOdds < 2) {
+                randomOdds += 100;
+            }
+
+            odds = (Math.floor(random.nextDouble(randomOdds) * 10) / 10);
+            randomOdds -= odds;
+            odds += 1;
 
             Horse horse = new Horse(horseTypes[i], odds, i);
 
             System.out.println(String.format("%-2d", i + 1) + " : "
                     + String.format("%-5s", odds) + " | "
                     + horse);
-
             this.horses[i] = horse;
             System.out.println("-----------------------------");
         }
@@ -270,7 +283,7 @@ public class HorseRace {
         }
 
         public HorseRaceBuilder setSettingByInput() {
-            if (InputUtil.getAnswerByYesNo("レースを選びますか？")) {
+            if (InputUtil.getAnswerByYesNo("レースを選びますか？", false)) {
                 final FieldType selectFiled = InputUtil.getEnumObject(FieldType.class, FieldType.NONE);
                 final RaceRank selectRank = InputUtil.getEnumObject(RaceRank.class);
                 final RangeType selectRange = InputUtil.getEnumObject(RangeType.class);
@@ -279,7 +292,7 @@ public class HorseRace {
                 this.raceType = new RaceType(selectFiled, selectRank, selectRange);
             }
 
-            this.realHorse = InputUtil.getAnswerByYesNo("実際の競走馬を反映させますか？");
+            this.realHorse = InputUtil.getAnswerByYesNo("実際の競走馬を反映させますか？", true);
 
             return this;
         }
