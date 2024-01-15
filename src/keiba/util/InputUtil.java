@@ -15,6 +15,8 @@ public class InputUtil {
                 System.out.println(input + "は範囲外です。");
                 return getInt(message, min, max);
             }
+            // scanner.nextLine()を次の行に移動
+            sc.nextLine();
             return input;
         } catch (InputMismatchException e) {
             // 数字以外 || intの範囲外 が入力されたら再帰的に呼び出す。
@@ -35,17 +37,16 @@ public class InputUtil {
         return getInt(message, min, Integer.MAX_VALUE);
     }
 
-    public static boolean getAnswerByYesNo(String message, Boolean defaultAnswer) {
+    public static boolean getAnswer(String message, Boolean defaultAnswer) {
         System.out.print((message == null ? "よろしいですか？" : message) + "(" + (defaultAnswer == null ? "y/n" : defaultAnswer ? "Y/n": "y/N") + ") :");
         String input = sc.nextLine();
-        System.out.println();
 
         if (input.isEmpty() && defaultAnswer != null) return defaultAnswer;
-        return input.equalsIgnoreCase("y") || (!input.equalsIgnoreCase("n") && getAnswerByYesNo(message, defaultAnswer));
+        return input.equalsIgnoreCase("y") || (!input.equalsIgnoreCase("n") && getAnswer(message, defaultAnswer));
     }
 
-    public static boolean getAnswerByYesNo(String message) {
-        return getAnswerByYesNo(message, null);
+    public static boolean getAnswer(String message) {
+        return getAnswer(message, null);
     }
 
     @SafeVarargs

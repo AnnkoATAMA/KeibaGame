@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
 
 
 public class HorseRace {
-    private static final int FIRST_MONEY = 1000;
     private static final Random random = new Random();
     private static final List<String> condition = new ArrayList<>() {{
         add("良　");
@@ -42,20 +41,14 @@ public class HorseRace {
         add("１０　　　");
         add("大差　　　");
     }};
-    private RaceType raceType;
-    private int horseAmount;
-    private Horse[] horses;
+    private final RaceType raceType;
+    private final int horseAmount;
+    private final Horse[] horses;
     private double haveMoney;
     private final List<BoughtTicket> boughtTickets = new ArrayList<>();
 
 
     private HorseRace(RaceType raceType, boolean useRealHorse, double money) {
-        if (money <= 0) {
-            System.out.println("所持金が尽きたので終了します。");
-            System.exit(0);
-            return;
-        }
-
         this.raceType = raceType;
         this.horseAmount = random.nextInt(13) + 6;
         this.haveMoney = money;
@@ -78,7 +71,23 @@ public class HorseRace {
 
         resultGame();
 
-        if (!InputUtil.getAnswerByYesNo("ゲームを終わりますか？")) {
+        if (this.haveMoney <= 0) {
+            System.out.println("所持金が尽きたので競馬場を出ます。");
+            System.out.println("優しい企業がお金を貸してくれるようです。");
+            boolean ans;
+            ans =InputUtil.getAnswer("お金を借りますか？",false);
+            if(ans) {
+                haveMoney+=1000;
+                System.out.println(ColorCode.RED + "1000貸してもらいました");
+                HorseRaceBuilder.create()
+                        .setSettingByInput()
+                        .setMoney(this.haveMoney)
+                        .build();
+            } else {
+                System.exit(0);
+            }
+
+        } else if (InputUtil.getAnswer("ゲームを続けますか？", true)) {
             HorseRaceBuilder.create()
                     .setSettingByInput()
                     .setMoney(this.haveMoney)
@@ -86,56 +95,49 @@ public class HorseRace {
         }
     }
 
-    private HorseRace(RaceType raceType, boolean useRealHorse) {
-        this(raceType, useRealHorse, FIRST_MONEY);
-    }
-
     private void buyTickets() {
         TicketType selectedTicketType;
         do {
             do {
                 selectedTicketType = InputUtil.getEnumObject("買う馬券の種類を選択してください\n", TicketType.class);
-            } while (!InputUtil.getAnswerByYesNo(selectedTicketType + "でよろしいですか？"));
+            } while (!InputUtil.getAnswer(selectedTicketType + "でよろしいでしょうか", true));
 
             // かける馬の選択
-            List<Horse> selectedHorses = selectBuyHorse(selectedTicketType);
+            List<Horse> selectedHorses = selectBuyTicket(selectedTicketType);
 
             // 掛け金の選択
             int betOut = InputUtil.getInt("いくら賭けますか", 1, (int) this.haveMoney);
             this.haveMoney -= betOut;
             System.out.println("現在の所持金は" + this.haveMoney + "です。");
             this.boughtTickets.add(BoughtTicket.of(selectedTicketType, selectedHorses, betOut));
-        } while (InputUtil.getAnswerByYesNo("さらに馬券を購入しますか？"));
+        } while (this.haveMoney > 0 && InputUtil.getAnswer("さらに馬券を購入しますか？",true));
     }
 
     private void createHorses(boolean useRealHorse) {
 
-//            リアルの競走馬を反映したオッズ作成
+        // リアルの競走馬を反映したオッズ作成
         System.out.println("------- 賭ける馬のオッズ -------");
         HorseType[] horseTypes = useRealHorse ?
                 HorseType.getRandomHorses(this.horseAmount, this.raceType.getFieldType()) :
                 IntStream.range(0, this.horseAmount).mapToObj(i -> HorseType.CUSTOM).toArray(HorseType[]::new);
-
+        //一定数を超えた場合odds抽選の最大値をアップする
         double odds = 400;
         if (horseAmount < 11) {
             odds = 250;
         } else if (horseAmount < 19) {
             odds = 300;
         }
-
+        //randomOddsに代入してランダムにオッズを出す
         double randomOdds = odds;
         for (int i = 0; i < horseAmount; i++) {
-
-            System.out.println(randomOdds);
             if(randomOdds < 2) {
                 randomOdds += 100;
             }
 
             odds = (Math.floor(random.nextDouble(randomOdds) * 10) / 10);
             randomOdds -= odds;
-            odds += 1;
-
             Horse horse = new Horse(horseTypes[i], odds, i);
+            odds += 1;
 
             System.out.println(String.format("%-2d", i + 1) + " : "
                     + String.format("%-5s", odds) + " | "
@@ -146,14 +148,14 @@ public class HorseRace {
     }
 
 
-    private List<Horse> selectBuyHorse(TicketType ticketType) {
+    private List<Horse> selectBuyTicket(TicketType ticketType) {
         List<Horse> buyHorse = new ArrayList<>();
             switch (ticketType) {
                 case WIN, PLACE_SHOW -> {
                     do {
                         buyHorse.clear();
                         buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
-                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか [" + multiplyOdds(buyHorse) + "]",true));
                 }
                 case TWO_HORSE_CONTINUOUS, TWO_ORDER_OF_ARRIVAL -> {
                     do {
@@ -161,7 +163,7 @@ public class HorseRace {
                         for (int i = 0; i < 2; i++) {
                             buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
                         }
-                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか [" + multiplyOdds(buyHorse) + "]", true));
                 }
                 case THREE_HORSE_CONTINUOUS, THREE_ORDER_OF_ARRIVAL -> {
                     do {
@@ -169,7 +171,7 @@ public class HorseRace {
                         for (int i = 0; i < 3; i++) {
                             buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
                         }
-                    } while (!InputUtil.getAnswerByYesNo("この馬券でよろしいですか\n" + multiplyOdds(buyHorse)));
+                    } while (InputUtil.getAnswer("この馬券でよろしいですか [" + multiplyOdds(buyHorse) + "]", true));
                 }
             }
 
@@ -218,14 +220,11 @@ public class HorseRace {
 
                 System.out.println("おめでとうございます！配当は" + winnings + "です！");
             } else {
-
-                System.out.println("あ～まけた...");
+                System.out.println("あーまけた");
             }
         }
-
-
             return haveMoney;
-        }
+    }
 
 
     private void resultGame() {
@@ -256,7 +255,7 @@ public class HorseRace {
     public static class HorseRaceBuilder {
         private boolean realHorse = false;
         private RaceType raceType = null;
-        private double money = 0;
+        private double money = 1000;
 
         private HorseRaceBuilder() {}
 
@@ -283,7 +282,7 @@ public class HorseRace {
         }
 
         public HorseRaceBuilder setSettingByInput() {
-            if (InputUtil.getAnswerByYesNo("レースを選びますか？", false)) {
+            if (InputUtil.getAnswer("レースを選びますか？", false)) {
                 final FieldType selectFiled = InputUtil.getEnumObject(FieldType.class, FieldType.NONE);
                 final RaceRank selectRank = InputUtil.getEnumObject(RaceRank.class);
                 final RangeType selectRange = InputUtil.getEnumObject(RangeType.class);
@@ -292,7 +291,7 @@ public class HorseRace {
                 this.raceType = new RaceType(selectFiled, selectRank, selectRange);
             }
 
-            this.realHorse = InputUtil.getAnswerByYesNo("実際の競走馬を反映させますか？", true);
+            this.realHorse = InputUtil.getAnswer("実際の競走馬を反映させますか？", true);
 
             return this;
         }
@@ -302,9 +301,7 @@ public class HorseRace {
                 this.raceType = new RaceType(FieldType.getRandomFieldType(FieldType.NONE), RaceRank.getRandomRankType(), RangeType.getRandomRangeType());
             }
 
-            if (0 < this.money) return new HorseRace(raceType, realHorse, money);
-
-            return new HorseRace(raceType, realHorse);
+            return new HorseRace(raceType, realHorse, money);
         }
     }
 }
