@@ -78,7 +78,7 @@ public class HorseRace {
             ans =InputUtil.getAnswer("お金を借りますか？",false);
             if(ans) {
                 haveMoney+=1000;
-                System.out.println(ColorCode.RED + "1000貸してもらいました");
+                System.out.println(ColorCode.RED + "1000円を貸してもらいました。");
                 HorseRaceBuilder.create()
                         .setSettingByInput()
                         .setMoney(this.haveMoney)
@@ -122,9 +122,9 @@ public class HorseRace {
                 IntStream.range(0, this.horseAmount).mapToObj(i -> HorseType.CUSTOM).toArray(HorseType[]::new);
         //一定数を超えた場合odds抽選の最大値をアップする
         double odds = 400;
-        if (horseAmount < 11) {
+        if (horseAmount < 7) {
             odds = 250;
-        } else if (horseAmount < 19) {
+        } else if (horseAmount < 11) {
             odds = 300;
         }
         //randomOddsに代入してランダムにオッズを出す
@@ -134,10 +134,16 @@ public class HorseRace {
                 randomOdds += 100;
             }
 
-            odds = (Math.floor(random.nextDouble(randomOdds) * 10) / 10);
+
+            if (horseTypes[i].equals(HorseType.EQUINOX) || horseTypes[i].equals(HorseType.DEEP_IMPACT) || horseTypes[i].equals(HorseType.ALMOND_EYE)) {
+                // ディープインパクトORイクイノックスORアーモンドアイだったらodds=1.5固定
+                odds = 1.5;
+            } else {
+                // oddsの作成
+                odds = (Math.floor(random.nextDouble(randomOdds+1)+ 10) / 10);
+            }
             randomOdds -= odds;
             Horse horse = new Horse(horseTypes[i], odds, i);
-            odds += 1;
 
             System.out.println(String.format("%-2d", i + 1) + " : "
                     + String.format("%-5s", odds) + " | "
@@ -151,13 +157,27 @@ public class HorseRace {
     private List<Horse> selectBuyTicket(TicketType ticketType) {
         List<Horse> buyHorse = new ArrayList<>();
             switch (ticketType) {
-                case WIN, PLACE_SHOW -> {
+                case WIN -> {
                     do {
                         buyHorse.clear();
                         buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
                     } while (!InputUtil.getAnswer("この馬券でよろしいですか [" + multiplyOdds(buyHorse) + "]",true));
                 }
-                case TWO_HORSE_CONTINUOUS, TWO_ORDER_OF_ARRIVAL -> {
+                case PLACE_SHOW -> {
+                    do {
+                        buyHorse.clear();
+                        buyHorse.add(this.horses[InputUtil.getInt("賭ける馬を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか [" + getDisplayOdds(multiplyOdds(buyHorse)/2) + "]",true));
+                }
+                case TWO_HORSE_CONTINUOUS -> {
+                    do {
+                        buyHorse.clear();
+                        for (int i = 0; i < 2; i++) {
+                            buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
+                        }
+                    } while (!InputUtil.getAnswer("この馬券でよろしいですか [" + getDisplayOdds(multiplyOdds(buyHorse)/1.5) + "]", true));
+                }
+                case TWO_ORDER_OF_ARRIVAL -> {
                     do {
                         buyHorse.clear();
                         for (int i = 0; i < 2; i++) {
@@ -165,7 +185,15 @@ public class HorseRace {
                         }
                     } while (!InputUtil.getAnswer("この馬券でよろしいですか [" + multiplyOdds(buyHorse) + "]", true));
                 }
-                case THREE_HORSE_CONTINUOUS, THREE_ORDER_OF_ARRIVAL -> {
+                case THREE_HORSE_CONTINUOUS -> {
+                    do {
+                        buyHorse.clear();
+                        for (int i = 0; i < 3; i++) {
+                            buyHorse.add(this.horses[InputUtil.getInt((i + 1) + "頭目を選んでください（1-" + this.horseAmount + "）", 1, this.horseAmount) - 1]);
+                        }
+                    } while (InputUtil.getAnswer("この馬券でよろしいですか [" + getDisplayOdds(multiplyOdds(buyHorse)/2.5) + "]", true));
+                }
+                case THREE_ORDER_OF_ARRIVAL -> {
                     do {
                         buyHorse.clear();
                         for (int i = 0; i < 3; i++) {
@@ -174,7 +202,6 @@ public class HorseRace {
                     } while (InputUtil.getAnswer("この馬券でよろしいですか [" + multiplyOdds(buyHorse) + "]", true));
                 }
             }
-
         return buyHorse;
     }
     
@@ -184,6 +211,10 @@ public class HorseRace {
             result = result.multiply(BigDecimal.valueOf(horse.getOdds()));
         }
         return result.doubleValue();
+    }
+
+    private String getDisplayOdds(double odds) {
+        return String.format("%.1f", odds);
     }
 
 
@@ -214,7 +245,13 @@ public class HorseRace {
             if (isTicketWin(ticket, result)) {
 
                 double odds = multiplyOdds(ticket.getSelectedHorses());
-                double winnings = ticket.getBet() * odds;
+                double winnings = switch (ticket.getTicketType()) {
+                    case PLACE_SHOW -> ticket.getBet() * odds/2;
+                    case TWO_HORSE_CONTINUOUS -> ticket.getBet() * odds/1.5;
+                    case THREE_HORSE_CONTINUOUS -> ticket.getBet() * odds/2.5;
+                    default -> ticket.getBet() * odds;
+
+                };
 
                 haveMoney += winnings;
 
